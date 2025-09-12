@@ -1,0 +1,140 @@
+# <!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>โฟโต้บูธน่ารัก 💖</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      text-align: center;
+      background: #ffeaf4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff4d94;
+      text-shadow: 1px 1px #fff;
+    }
+    video {
+      border: 5px solid #ff99cc;
+      border-radius: 15px;
+      max-width: 90%;
+    }
+    .frame {
+      width: 300px;
+      background: #fff;
+      border: 10px solid #ff99cc;
+      border-radius: 20px;
+      padding: 10px;
+      margin: 20px auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .photo-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .photo-strip img {
+      width: 100%;
+      border-radius: 10px;
+      border: 3px dashed #ffb6c1;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px 20px;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #ff66b2;
+      color: white;
+    }
+    #result {
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>📸 โฟโต้บูธน่ารัก 💖</h1>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  
+  <div id="controls">
+    <button id="snap">ถ่ายภาพ (3 ครั้ง)</button>
+    <button id="download" style="display:none;">ดาวน์โหลดแถบรูป</button>
+  </div>
+
+  <div id="result" class="frame">
+    <div class="photo-strip" id="strip"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const snapBtn = document.getElementById('snap');
+    const downloadBtn = document.getElementById('download');
+    const strip = document.getElementById('strip');
+    const result = document.getElementById('result');
+    const ctx = canvas.getContext('2d');
+    let photos = [];
+
+    // ขอสิทธิ์กล้อง
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => alert("ไม่สามารถใช้กล้องได้: " + err));
+
+    function takePhoto() {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/png');
+    }
+
+    snapBtn.addEventListener('click', async () => {
+      photos = [];
+      strip.innerHTML = "";
+      result.style.display = "block";
+
+      for (let i = 0; i < 3; i++) {
+        await new Promise(resolve => setTimeout(resolve, 1500)); // รอ 1.5 วิ ต่อรูป
+        const photo = takePhoto();
+        photos.push(photo);
+        const img = document.createElement('img');
+        img.src = photo;
+        strip.appendChild(img);
+      }
+
+      downloadBtn.style.display = 'inline-block';
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const stripCanvas = document.createElement('canvas');
+      const w = 300;
+      const h = 3 * 200 + 40; // 3 รูป + ช่องว่าง
+      stripCanvas.width = w;
+      stripCanvas.height = h;
+      const ctx2 = stripCanvas.getContext('2d');
+      ctx2.fillStyle = "#fff";
+      ctx2.fillRect(0, 0, w, h);
+
+      photos.forEach((p, i) => {
+        const img = new Image();
+        img.src = p;
+        img.onload = () => {
+          ctx2.drawImage(img, 0, i * 210, w, 200);
+          if (i === 2) {
+            const dataURL = stripCanvas.toDataURL("image/png");
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = "photostrip.png";
+            a.click();
+          }
+        };
+      });
+    });
+  </script>
+</body>
+</html>
