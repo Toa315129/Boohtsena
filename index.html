@@ -312,3 +312,154 @@
 </script>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Photo Booth</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #111; /* พื้นหลังเหมือนตู้ */
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    .booth {
+      position: relative;
+      width: 400px;
+      height: 600px;
+      background: #000;
+      border: 8px solid #444;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .countdown {
+      position: absolute;
+      font-size: 60px;
+      font-weight: bold;
+      color: white;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #ff4d4d;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* กรอบโพลารอยด์ */
+    .polaroid {
+      margin-top: 20px;
+      width: 300px;
+      background: white;
+      padding: 15px 10px 40px 10px;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+
+    .polaroid img {
+      width: 100%;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .caption {
+      font-size: 18px;
+      font-weight: bold;
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="booth">
+    <video id="video" autoplay></video>
+    <div class="countdown" id="countdown">3</div>
+    <button id="startBtn">ถ่ายรูป</button>
+  </div>
+
+  <!-- ที่โชว์รูปโพลารอยด์ -->
+  <div id="output"></div>
+
+  <script>
+    const video = document.getElementById('video');
+    const countdown = document.getElementById('countdown');
+    const startBtn = document.getElementById('startBtn');
+    const output = document.getElementById('output');
+
+    // เปิดกล้อง
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      video.srcObject = stream;
+    });
+
+    async function takePhoto() {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      return canvas.toDataURL('image/png');
+    }
+
+    async function startShooting() {
+      let photos = [];
+
+      for (let i = 3; i > 0; i--) {
+        countdown.style.display = 'block';
+        countdown.textContent = i;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      countdown.style.display = 'none';
+
+      // ถ่าย 3 รูป
+      for (let i = 0; i < 3; i++) {
+        photos.push(await takePhoto());
+        new Audio("https://actions.google.com/sounds/v1/camera/camera_click.ogg").play();
+        await new Promise(r => setTimeout(r, 1500));
+      }
+
+      // สร้างโพลารอยด์
+      const polaroid = document.createElement('div');
+      polaroid.className = 'polaroid';
+
+      photos.forEach(p => {
+        const img = document.createElement('img');
+        img.src = p;
+        polaroid.appendChild(img);
+      });
+
+      const caption = document.createElement('div');
+      caption.className = 'caption';
+      caption.textContent = 'Photo Booth @saphasena68';
+      polaroid.appendChild(caption);
+
+      output.innerHTML = '';
+      output.appendChild(polaroid);
+    }
+
+    startBtn.addEventListener('click', startShooting);
+  </script>
+</body>
+</html>
