@@ -1,156 +1,123 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SENA PHOTOBOOTH</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
 <style>
-  body{
-    margin:0;
-    background:#fdfdfd;
-    font-family:'Segoe UI',sans-serif;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    min-height:100vh;
-  }
-  header{
-    text-align:center;
-    padding:1rem 0;
-    font-size:1.8rem;
-    font-weight:600;
-    color:#222;
-  }
-  header .sub{font-size:.9rem;font-weight:400;color:#555;}
-  .photo-container{
-    position:relative;
-    background:#fff;
-    border-radius:12px;
-    overflow:hidden;
-    box-shadow:0 6px 16px rgba(0,0,0,.15);
-    width:90vw;
-    max-width:700px;
-    aspect-ratio:3/4;
-    margin:0 auto;
-  }
-  .photo-container video,
-  .photo-container img{
-    width:100%;height:100%;
-    object-fit:cover;
-    display:block;
-  }
-  .controls{
-    margin-top:1.5rem;
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:1rem;
-  }
-  button{
-    background:#f0f0f0;
-    border:none;
-    border-radius:50px;
-    padding:.75rem 1.5rem;
-    font-size:1rem;
-    cursor:pointer;
-    transition:background .2s;
-  }
-  button:hover{background:#e0e0e0;}
-  @media screen and (orientation:landscape){
-    body{padding:1rem 3rem;}
-    .photo-container{width:70vh;max-width:none;}
-  }
+:root{
+  --bg:#ffffff;
+  --accent-blue:#bfeeff;
+  --accent-yellow:#ffd54f;
+  --accent-pink:#ffb6c1;
+  --muted:#e6e9ee;
+  --text:#223344;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;width:100%;
+  background:var(--accent-blue);
+  font-family:"Quicksand",sans-serif;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;     /* ลด padding รอบๆ */
+}
+
+/* --------- ปรับตรงนี้ --------- */
+.container{
+  width:100%;
+  max-width:900px;      /* ลดจาก 960 */
+  background:var(--bg);
+  border-radius:20px;
+  box-shadow:0 12px 30px rgba(0,0,0,0.12);
+  padding:12px;         /* ลด padding ใน */
+}
+/* เมื่อจอเล็กกว่า 600px ลดขนาดตัวอักษรกับ margin */
+@media (max-width:600px){
+  .header .brand{font-size:16px}
+  .header .brand small{font-size:11px}
+  .note{font-size:12px}
+}
+/* -------------------------------- */
+
+/* header */
+.header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.header .brand{font-weight:700;font-size:18px}
+.header .brand small{display:block;font-weight:500;font-size:12px;color:#666;text-transform:lowercase}
+
+/* layout */
+.main{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+/* camera area */
+.camera-wrap{
+  flex:1 1 360px;
+  min-width:260px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.preview{
+  width:100%;
+  border-radius:14px;
+  overflow:hidden;
+  background:var(--muted);
+  border:6px solid #fff;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  position:relative;
+  aspect-ratio:3/4;
+}
+#video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block;}
+.countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:4rem;color:#fff;text-shadow:0 4px 12px rgba(0,0,0,0.5);pointer-events:none}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.18s}
+.flash.show{opacity:0.85}
+
+/* controls */
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.btn{
+  padding:8px 12px;border-radius:10px;border:1px solid #e5e7eb;background:#fff;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 10px rgba(16,24,40,0.05);
+}
+.btn:disabled{opacity:0.55;cursor:not-allowed}
+.shutter{
+  width:78px;height:78px;border-radius:50%;
+  background:linear-gradient(180deg,var(--accent-yellow),#f0b800);
+  border:6px solid #fff;
+  box-shadow:0 10px 20px rgba(0,0,0,0.12);
+  display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
+}
+
+/* thumbs */
+.gallery{
+  width:280px;min-width:240px;flex:0 0 280px;
+  display:flex;flex-direction:column;gap:10px;align-items:center;
+}
+.thumbs{display:flex;gap:6px;width:100%;justify-content:space-between}
+.thumb{width:32%;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#fff;border:3px solid var(--muted);display:flex;align-items:center;justify-content:center}
+.thumb img{width:100%;height:100%;object-fit:cover}
+
+/* responsiveness for landscape iPad */
+@media(min-width:900px){
+  .camera-wrap{flex:1 1 60%}
+  .gallery{flex:0 0 34%;}
+}
+
+.note{font-size:13px;color:#666;text-align:center;margin-top:6px}
 </style>
 </head>
 <body>
-<header>
-  PHOTO BOOTH <span class="sub">saphasena68</span>
-</header>
-
-<div class="photo-container">
-  <video id="camera" autoplay playsinline></video>
-  <canvas id="canvas" hidden></canvas>
+<div class="container">
+  <!-- ที่เหลือ (HTML + JS) ใช้เหมือนเดิม -->
+  ... ใส่ส่วน <div class="header">, <div class="main">, <script> จากโค้ดต้นฉบับของคุณ ...
 </div>
-
-<div class="controls">
-  <button id="capture">ถ่ายภาพ</button>
-  <button id="retake">ถ่ายใหม่</button>
-  <button id="switchCam">สลับกล้อง</button>
-  <button id="download">ดาวน์โหลด</button>
-</div>
-
-<audio id="shutter" src="shutter.mp3" preload="auto"></audio>
-
-<script>
-const video = document.getElementById('camera');
-const canvas = document.getElementById('canvas');
-const shutter = document.getElementById('shutter');
-const captureBtn = document.getElementById('capture');
-const retakeBtn = document.getElementById('retake');
-const downloadBtn = document.getElementById('download');
-const switchBtn = document.getElementById('switchCam');
-
-let currentStream;
-let useFront = true;
-let capturedImages = [];
-
-async function startCamera() {
-  if (currentStream) currentStream.getTracks().forEach(t => t.stop());
-  const constraints = { video: { facingMode: useFront ? 'user' : 'environment' } };
-  currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-  video.srcObject = currentStream;
-}
-startCamera();
-
-switchBtn.onclick = () => { useFront = !useFront; startCamera(); };
-
-captureBtn.onclick = async () => {
-  capturedImages = [];
-  const ctx = canvas.getContext('2d');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  for (let i = 0; i < 3; i++) {
-    shutter.play();
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    capturedImages.push(canvas.toDataURL('image/jpeg'));
-    await new Promise(r => setTimeout(r, i === 2 ? 0 : 4000)); // 3วิ + พัก1วิ
-  }
-
-  // รวมภาพเป็นโพลารอยด์ 4x6
-  const mergeCanvas = document.createElement('canvas');
-  mergeCanvas.width = 1200;
-  mergeCanvas.height = 1800;
-  const mCtx = mergeCanvas.getContext('2d');
-  mCtx.fillStyle = "#fff";
-  mCtx.fillRect(0, 0, mergeCanvas.width, mergeCanvas.height);
-
-  // หัวข้อ SENA PHOTOBOOTH
-  mCtx.fillStyle = "#000";
-  mCtx.font = "bold 70px sans-serif";
-  mCtx.textAlign = "center";
-  mCtx.fillText("SENA PHOTOBOOTH", mergeCanvas.width/2, 100);
-
-  capturedImages.forEach((img, idx) => {
-    const image = new Image();
-    image.src = img;
-    image.onload = () => {
-      const h = 520;
-      mCtx.drawImage(image, 60, 150 + idx * (h + 30), 1080, h);
-      if (idx === 2) downloadBtn.dataset.ready = mergeCanvas.toDataURL('image/jpeg');
-    };
-  });
-};
-
-retakeBtn.onclick = () => { capturedImages = []; };
-
-downloadBtn.onclick = () => {
-  if (!downloadBtn.dataset.ready) return;
-  const a = document.createElement('a');
-  a.href = downloadBtn.dataset.ready;
-  a.download = 'sena_photobooth.jpg';
-  a.click();
-};
-</script>
 </body>
 </html>
