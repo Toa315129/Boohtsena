@@ -1,151 +1,209 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Photo Booth</title>
-  <style>
-    body {
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: #111; /* พื้นหลังเหมือนตู้ */
-      font-family: Arial, sans-serif;
-      color: white;
-    }
-
-    .booth {
-      position: relative;
-      width: 400px;
-      height: 600px;
-      background: #000;
-      border: 8px solid #444;
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    video {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-
-    .countdown {
-      position: absolute;
-      font-size: 60px;
-      font-weight: bold;
-      color: white;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: none;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      background: #ff4d4d;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    /* กรอบโพลารอยด์ */
-    .polaroid {
-      margin-top: 20px;
-      width: 300px;
-      background: white;
-      padding: 15px 10px 40px 10px;
-      box-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-      text-align: center;
-    }
-
-    .polaroid img {
-      width: 100%;
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    .caption {
-      font-size: 18px;
-      font-weight: bold;
-      color: red;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Photo Booth SaphaSena68</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --main:#ffffff;
+  --accent:#222;
+  --border:#ddd;
+}
+body{
+  margin:0;
+  background:var(--main);
+  font-family:"Quicksand",sans-serif;
+  color:var(--accent);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding:20px;
+}
+header{
+  font-weight:700;
+  font-size:1.8rem;
+  margin-bottom:20px;
+}
+header span{font-weight:500;font-size:1rem;text-transform:lowercase;}
+video{
+  width:90vw;max-width:500px;
+  aspect-ratio:3/4;
+  border:6px solid var(--border);
+  border-radius:16px;
+  object-fit:cover;
+  background:#000;
+}
+.controls{
+  margin-top:20px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+button{
+  padding:10px 18px;
+  border:2px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  font-weight:700;
+  cursor:pointer;
+  transition:0.2s;
+}
+button:hover{background:#f5f5f5;}
+.countdown{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:4rem;
+  color:white;
+  text-shadow:0 2px 6px rgba(0,0,0,0.6);
+  pointer-events:none;
+}
+.flash{
+  position:absolute;inset:0;background:white;
+  opacity:0;transition:opacity 0.2s;
+}
+.flash.show{opacity:0.8;}
+#thumbs{
+  margin-top:20px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+#thumbs img{
+  width:30%;min-width:100px;
+  aspect-ratio:3/4;
+  border:4px solid var(--border);
+  border-radius:10px;
+  object-fit:cover;
+}
+</style>
 </head>
 <body>
-  <div class="booth">
-    <video id="video" autoplay></video>
-    <div class="countdown" id="countdown">3</div>
-    <button id="startBtn">ถ่ายรูป</button>
-  </div>
+<header>PHOTO BOOTH <span>saphasena68</span></header>
 
-  <!-- ที่โชว์รูปโพลารอยด์ -->
-  <div id="output"></div>
+<div style="position:relative;">
+  <video id="video" autoplay playsinline></video>
+  <div class="countdown" id="countdown"></div>
+  <div class="flash" id="flash"></div>
+</div>
 
-  <script>
-    const video = document.getElementById('video');
-    const countdown = document.getElementById('countdown');
-    const startBtn = document.getElementById('startBtn');
-    const output = document.getElementById('output');
+<div class="controls">
+  <button id="captureBtn">📸 ถ่ายภาพ</button>
+  <button id="retakeBtn" disabled>🔄 ถ่ายใหม่</button>
+  <button id="downloadBtn" disabled>⬇️ ดาวน์โหลด</button>
+  <button id="switchBtn">🔁 สลับกล้อง</button>
+</div>
 
-    // เปิดกล้อง
-    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-      video.srcObject = stream;
-    });
+<div id="thumbs"></div>
 
-    async function takePhoto() {
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-      return canvas.toDataURL('image/png');
+<audio id="snapSound" src="https://cdn.jsdelivr.net/gh/naptha/talkdemo/snap.mp3" preload="auto"></audio>
+
+<script>
+const video=document.getElementById('video');
+const captureBtn=document.getElementById('captureBtn');
+const retakeBtn=document.getElementById('retakeBtn');
+const downloadBtn=document.getElementById('downloadBtn');
+const switchBtn=document.getElementById('switchBtn');
+const countdown=document.getElementById('countdown');
+const flash=document.getElementById('flash');
+const snap=document.getElementById('snapSound');
+const thumbs=document.getElementById('thumbs');
+let currentStream;
+let useFront=true;
+let captures=[];
+
+async function startCamera(){
+  if(currentStream){currentStream.getTracks().forEach(t=>t.stop());}
+  currentStream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:useFront?"user":"environment"}
+  });
+  video.srcObject=currentStream;
+}
+startCamera();
+
+switchBtn.onclick=()=>{useFront=!useFront;startCamera();};
+
+function takeSnapshot(){
+  const c=document.createElement('canvas');
+  c.width=video.videoWidth; c.height=video.videoHeight;
+  const ctx=c.getContext('2d');
+  ctx.translate(c.width,0);ctx.scale(-1,1); // mirror
+  ctx.drawImage(video,0,0,c.width,c.height);
+  return c.toDataURL("image/png");
+}
+
+async function captureSeries(){
+  captures=[];
+  captureBtn.disabled=true;
+  retakeBtn.disabled=true;
+  downloadBtn.disabled=true;
+  thumbs.innerHTML="";
+  for(let i=0;i<3;i++){
+    for(let t=3;t>0;t--){
+      countdown.textContent=t;
+      await new Promise(r=>setTimeout(r,1000));
     }
+    countdown.textContent="";
+    snap.play().catch(()=>{});
+    flash.classList.add("show");
+    setTimeout(()=>flash.classList.remove("show"),200);
+    const img=takeSnapshot();
+    captures.push(img);
+    const thumb=document.createElement('img');
+    thumb.src=img;
+    thumbs.appendChild(thumb);
+    await new Promise(r=>setTimeout(r,1000)); // pause 1s
+  }
+  retakeBtn.disabled=false;
+  downloadBtn.disabled=false;
+}
 
-    async function startShooting() {
-      let photos = [];
-
-      for (let i = 3; i > 0; i--) {
-        countdown.style.display = 'block';
-        countdown.textContent = i;
-        await new Promise(r => setTimeout(r, 1000));
-      }
-      countdown.style.display = 'none';
-
-      // ถ่าย 3 รูป
-      for (let i = 0; i < 3; i++) {
-        photos.push(await takePhoto());
-        new Audio("https://actions.google.com/sounds/v1/camera/camera_click.ogg").play();
-        await new Promise(r => setTimeout(r, 1500));
-      }
-
-      // สร้างโพลารอยด์
-      const polaroid = document.createElement('div');
-      polaroid.className = 'polaroid';
-
-      photos.forEach(p => {
-        const img = document.createElement('img');
-        img.src = p;
-        polaroid.appendChild(img);
-      });
-
-      const caption = document.createElement('div');
-      caption.className = 'caption';
-      caption.textContent = 'Photo Booth @saphasena68';
-      polaroid.appendChild(caption);
-
-      output.innerHTML = '';
-      output.appendChild(polaroid);
-    }
-
-    startBtn.addEventListener('click', startShooting);
-  </script>
+captureBtn.onclick=captureSeries;
+retakeBtn.onclick=()=>{thumbs.innerHTML="";captures=[];downloadBtn.disabled=true;};
+downloadBtn.onclick=async()=>{
+  if(!captures.length) return;
+  const w=1200,h=1800;
+  const c=document.createElement('canvas');
+  c.width=w;c.height=h;
+  const ctx=c.getContext('2d');
+  // พื้นหลังขาว
+  ctx.fillStyle="#fff";
+  ctx.fillRect(0,0,w,h);
+  // หัวเรื่อง SENA PHOTOBOOTH
+  ctx.fillStyle="#000";
+  ctx.font="bold 72px Quicksand";
+  ctx.textAlign="center";
+  ctx.fillText("SENA PHOTOBOOTH", w/2,90);
+  // วาดรูป 3 ช่อง
+  const margin=60,gap=40;
+  const boxW=w-2*margin, boxH=(h-200-2*gap)/3;
+  ctx.lineWidth=12;
+  ctx.strokeStyle="#ccc";
+  for(let i=0;i<3;i++){
+    const y=130 + i*(boxH+gap);
+    ctx.strokeRect(margin,y,boxW,boxH);
+    const img=await loadImg(captures[i]);
+    const ratio=Math.max(boxW/img.width, boxH/img.height);
+    const iw=img.width*ratio, ih=img.height*ratio;
+    ctx.drawImage(img,margin+(boxW-iw)/2,y+(boxH-ih)/2,iw,ih);
+  }
+  const a=document.createElement('a');
+  a.href=c.toDataURL("image/png");
+  a.download="sena_photobooth.png";
+  a.click();
+};
+function loadImg(src){
+  return new Promise((res,rej)=>{
+    const i=new Image();
+    i.onload=()=>res(i);
+    i.onerror=rej;
+    i.src=src;
+  });
+}
+</script>
 </body>
 </html>
